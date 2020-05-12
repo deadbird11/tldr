@@ -1,7 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+
+	"github.com/deadbird11/tldr/downloading"
+)
 
 func main() {
-	fmt.Println("Hello world")
+	args := os.Args[1:]
+	desc, _ := downloading.GetCommandDesc(args[0])
+	fmt.Println(desc)
 }
