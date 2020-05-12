@@ -1,3 +1,4 @@
 *.exe
 downloading/cache/*
 !.keep
+go.sum
