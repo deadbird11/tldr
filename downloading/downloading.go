@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	cachePath      = "cache/"
+	cachePath      = "downloading/cache/"
 	cacheExtension = ".txt"
 
-	remoteURLBase   = "raw.githubusercontent.com/tldr-pages/tldr/master/pages/"
+	remoteURLBase   = "https://raw.githubusercontent.com/tldr-pages/tldr/master/pages/"
+	remoteDir       = "common/"
 	remoteExtension = ".md"
 )
 
@@ -27,7 +28,6 @@ func GetCommandDesc(cmd string) (string, error) {
 	if desc, ok := getRemoteDesc(cmd); ok {
 		return desc, nil
 	}
-
 	return "", fmt.Errorf("command '%s' not recognized", cmd)
 }
 
@@ -48,13 +48,14 @@ func getCachedDesc(cmd string) (string, bool) {
 // TODO: add support for specific OSs, starting with the one the user is
 // currently using
 func getRemoteDesc(cmd string) (string, bool) {
-	desc, err := tryDownload(remoteURLBase + cmd + remoteExtension)
+	desc, err := tryDownload(remoteURLBase + remoteDir + cmd + remoteExtension)
 	if err != nil {
 		return "", false
 	}
 
-	if err = tryWriteToFile(desc, cmd); err != nil {
-		return "", false
+	err = tryWriteToFile(desc, cmd)
+	if err != nil {
+		fmt.Println("failed to cache description")
 	}
 
 	return desc, true
@@ -81,6 +82,7 @@ func tryDownload(url string) (string, error) {
 func tryWriteToFile(content string, fName string) error {
 	f, err := os.Create(cachePath + fName + cacheExtension)
 	if err != nil {
+		println(err.Error())
 		return err
 	}
 	defer f.Close()
