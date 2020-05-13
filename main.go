@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/deadbird11/tldr/downloading"
+	"github.com/deadbird11/tldr/render"
 )
 
 func main() {
@@ -13,5 +14,5 @@ func main() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	fmt.Println(*desc)
+	render.MD(desc)
 }
