@@ -19,40 +19,37 @@ const (
 
 // GetCommandDesc - takes a command "cmd" and returns the tldr
 // description of it, via https://github.com/tldr-pages/tldr/tree/master/pages
-// returns error when cmd is not recognized
 // returns ptr to string because it might be rather large
-func GetCommandDesc(cmd string) (*string, error) {
-	if desc, ok := getCachedDesc(cmd); ok {
-		return desc, nil
+func GetCommandDesc(cmd string) *string {
+	if desc := getCachedDesc(cmd); desc != nil {
+		return desc
 	}
 
-	if desc, ok := getRemoteDesc(cmd); ok {
-		return desc, nil
+	if desc := getRemoteDesc(cmd); desc != nil {
+		return desc
 	}
-	return nil, fmt.Errorf("command '%s' not recognized", cmd)
+	return nil
 }
 
 // getCachedDesc - attempts to get cached tldr description
 // saved in downloading/cache/,
-// follows comma ok idiom
-func getCachedDesc(cmd string) (*string, bool) {
+func getCachedDesc(cmd string) *string {
 	desc, err := ioutil.ReadFile(cachePath + cmd + cacheExtension)
 	if err != nil {
-		return nil, false
+		return nil
 	}
 	result := string(desc)
-	return &result, true
+	return &result
 }
 
 // getRemoteDesc - attempts to download description of "cmd"
 // from https://github.com/tldr-pages/tldr/tree/master/pages,
-// follows comma ok idiom
 // TODO: add support for specific OSs, starting with the one the user is
 // currently using
-func getRemoteDesc(cmd string) (*string, bool) {
+func getRemoteDesc(cmd string) *string {
 	desc, err := tryDownload(remoteURLBase + remoteDir + cmd + remoteExtension)
 	if err != nil {
-		return nil, false
+		return nil
 	}
 
 	err = tryWriteToFile(desc, cmd)
@@ -60,11 +57,10 @@ func getRemoteDesc(cmd string) (*string, bool) {
 		fmt.Println("failed to cache description")
 	}
 
-	return desc, true
+	return desc
 }
 
 // tryDownload - attempts to download file at "url",
-// follows comma error idiom
 func tryDownload(url string) (*string, error) {
 	resp, err := http.Get(url)
 	if err != nil {
