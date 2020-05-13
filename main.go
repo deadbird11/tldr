@@ -9,6 +9,9 @@ import (
 
 func main() {
 	args := os.Args[1:]
-	desc, _ := downloading.GetCommandDesc(args[0])
-	fmt.Println(desc)
+	desc, err := downloading.GetCommandDesc(args[0])
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	fmt.Println(*desc)
 }

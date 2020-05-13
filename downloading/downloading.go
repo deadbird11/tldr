@@ -20,7 +20,8 @@ const (
 // GetCommandDesc - takes a command "cmd" and returns the tldr
 // description of it, via https://github.com/tldr-pages/tldr/tree/master/pages
 // returns error when cmd is not recognized
-func GetCommandDesc(cmd string) (string, error) {
+// returns ptr to string because it might be rather large
+func GetCommandDesc(cmd string) (*string, error) {
 	if desc, ok := getCachedDesc(cmd); ok {
 		return desc, nil
 	}
@@ -28,18 +29,19 @@ func GetCommandDesc(cmd string) (string, error) {
 	if desc, ok := getRemoteDesc(cmd); ok {
 		return desc, nil
 	}
-	return "", fmt.Errorf("command '%s' not recognized", cmd)
+	return nil, fmt.Errorf("command '%s' not recognized", cmd)
 }
 
 // getCachedDesc - attempts to get cached tldr description
 // saved in downloading/cache/,
 // follows comma ok idiom
-func getCachedDesc(cmd string) (string, bool) {
+func getCachedDesc(cmd string) (*string, bool) {
 	desc, err := ioutil.ReadFile(cachePath + cmd + cacheExtension)
 	if err != nil {
-		return "", false
+		return nil, false
 	}
-	return string(desc), true
+	result := string(desc)
+	return &result, true
 }
 
 // getRemoteDesc - attempts to download description of "cmd"
@@ -47,10 +49,10 @@ func getCachedDesc(cmd string) (string, bool) {
 // follows comma ok idiom
 // TODO: add support for specific OSs, starting with the one the user is
 // currently using
-func getRemoteDesc(cmd string) (string, bool) {
+func getRemoteDesc(cmd string) (*string, bool) {
 	desc, err := tryDownload(remoteURLBase + remoteDir + cmd + remoteExtension)
 	if err != nil {
-		return "", false
+		return nil, false
 	}
 
 	err = tryWriteToFile(desc, cmd)
@@ -63,31 +65,31 @@ func getRemoteDesc(cmd string) (string, bool) {
 
 // tryDownload - attempts to download file at "url",
 // follows comma error idiom
-func tryDownload(url string) (string, error) {
+func tryDownload(url string) (*string, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return string(content), nil
+	result := string(content)
+	return &result, nil
 }
 
 // tryWriteToFile - attempts to write file with path "cache/{fName}.txt"
 // with content "content"
-func tryWriteToFile(content string, fName string) error {
+func tryWriteToFile(content *string, fName string) error {
 	f, err := os.Create(cachePath + fName + cacheExtension)
 	if err != nil {
-		println(err.Error())
 		return err
 	}
 	defer f.Close()
 
-	_, err = io.WriteString(f, content)
+	_, err = io.WriteString(f, *content)
 	if err != nil {
 		return err
 	}
