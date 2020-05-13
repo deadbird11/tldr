@@ -6,6 +6,8 @@ import (
 	"io"
 	"log"
 	"strings"
+
+	"github.com/fatih/color"
 )
 
 var buffer []byte
@@ -23,8 +25,28 @@ func MD(content *string) {
 				log.Fatal(err)
 			}
 		} else {
-			fmt.Printf("%s", string(c))
+			char := string(c)
+			switch char {
+			case "#":
+				// skipping space after #
+				r.ReadRune()
+			case "`":
+				renderCode(r)
+			default:
+				fmt.Print(char)
+			}
 		}
 
 	}
+}
+
+// renderCode - renders chars between `` as magenta
+// TODO: make this more complex
+func renderCode(r *bufio.Reader) {
+	codeStr, err := r.ReadString([]byte("`")[0])
+	if err != nil {
+		return
+	}
+	codeStr = codeStr[:len(codeStr)-1]
+	color.Cyan(codeStr)
 }
