@@ -10,9 +10,9 @@ import (
 
 func main() {
 	args := os.Args[1:]
-	desc, err := downloading.GetCommandDesc(args[0])
-	if err != nil {
-		fmt.Println(err.Error())
+	desc := downloading.GetCommandDesc(args[0])
+	if desc == nil {
+		fmt.Printf("could not provide description for command '%s'", args[0])
 	}
 	render.MD(desc)
 }
