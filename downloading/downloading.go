@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"runtime"
@@ -11,7 +12,7 @@ import (
 )
 
 const (
-	cachePath      = "downloading/cache/"
+	cachePath      = "downloading\\cache\\"
 	cacheExtension = ".txt"
 
 	remoteURLBase   = "https://raw.githubusercontent.com/tldr-pages/tldr/master/pages/"
@@ -55,7 +56,7 @@ func GetCommandDesc(cmd string) *string {
 // getCachedDesc - attempts to get cached tldr description
 // saved in downloading/cache/,
 func getCachedDesc(cmd string) *string {
-	desc, err := ioutil.ReadFile(cachePath + cmd + cacheExtension)
+	desc, err := ioutil.ReadFile(getCurrentPath() + cachePath + cmd + cacheExtension)
 	if err != nil {
 		return nil
 	}
@@ -72,9 +73,9 @@ func getRemoteDesc(cmd string, dir string) *string {
 	if err != nil {
 		return nil
 	}
-
 	err = tryWriteToFile(desc, cmd)
 	if err != nil {
+		log.Fatal(err)
 		fmt.Println("failed to cache description")
 	}
 
@@ -104,7 +105,7 @@ func tryDownload(url string) (*string, error) {
 // tryWriteToFile - attempts to write file with path "cache/{fName}.txt"
 // with content "content"
 func tryWriteToFile(content *string, fName string) error {
-	f, err := os.Create(cachePath + fName + cacheExtension)
+	f, err := os.Create(getCurrentPath() + cachePath + fName + cacheExtension)
 	if err != nil {
 		return err
 	}
@@ -116,4 +117,15 @@ func tryWriteToFile(content *string, fName string) error {
 	}
 
 	return f.Sync()
+}
+
+func getCurrentPath() string {
+	path, err := os.Executable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	i := len(path) - 1
+	for ; path[i] != '\\'; i-- {
+	}
+	return path[:i+1]
 }
